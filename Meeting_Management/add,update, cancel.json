@@ -1,0 +1,1147 @@
+{
+  "name": "add,update, cancel",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg",
+          "mode": "list",
+          "cachedResultName": "Meeting Logger",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Active Meetings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Title ": "={{ $json.Title }}",
+            "Attendees ": "={{ $json.Attendees }}",
+            "Attendees_Gmails ": "={{ $json.Attendees_GmailS }}",
+            "Gist ": "={{ $json.Gist }}",
+            "Status ": "={{ $json.Status }}",
+            "ID": "={{ $json.ID }}",
+            "Date/Time ": "={{$json.DateTime}}",
+            "Duration(mins) ": "={{ $json.durationInMinutes }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Title ",
+              "displayName": "Title ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Attendees ",
+              "displayName": "Attendees ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Attendees_Gmails ",
+              "displayName": "Attendees_Gmails ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Gist ",
+              "displayName": "Gist ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status ",
+              "displayName": "Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date/Time ",
+              "displayName": "Date/Time ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Duration(mins) ",
+              "displayName": "Duration(mins) ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1248,
+        208
+      ],
+      "id": "aba55c20-7ad7-4bd9-99f2-20ab414a4f9d",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vDcV0XpqKIyE2xGe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const emails = $input.first().json.Attendees_GmailS\n    .split(',')\n    .map(e => e.trim())\n    .filter(e => e.length > 0);\n\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\n\nconst invalidEmails = emails.filter(\n    e => !emailRegex.test(e)\n);\n\nreturn [{\n  totalEmailsCount: emails.length,\n  validEmailsCount: emails.length - invalidEmails.length,\n  emails,\n  invalidEmails\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        32
+      ],
+      "id": "022079d0-ca52-45a6-a3fc-ed39d3381642",
+      "name": "Emails_check"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8672cce9-0f2e-4b37-90c1-c72532f60750",
+              "leftValue": "={{ $json.validEmailsCount }}",
+              "rightValue": "={{ $json.totalEmailsCount }}",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -272,
+        32
+      ],
+      "id": "526e1cfe-6b43-4260-8353-0249bc91cc3f",
+      "name": "If5"
+    },
+    {
+      "parameters": {
+        "jsCode": "const durationText = $('Form Trigger').first().json.Duration;\n\nlet durationInMinutes = 0;\n\nif (durationText.includes('30')) {\n  durationInMinutes = 30;\n}\nelse if (durationText.includes('1.5')) {\n  durationInMinutes = 90;\n}\nelse if (\n  durationText.includes('1 hour') ||\n  durationText.includes('1 Hour')\n) {\n  durationInMinutes = 60;\n}\nelse if (\n  durationText.includes('2 hour') ||\n  durationText.includes('2 Hour')\n) {\n  durationInMinutes = 120;\n}\n\nreturn [{\n  durationInMinutes\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        32
+      ],
+      "id": "7594b7da-46ff-4251-b888-ceec4056d40f",
+      "name": "Duration Parser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b4370036-09e0-46d4-b968-c24b870eb565",
+              "name": "Title",
+              "value": "={{ $('Form Trigger').item.json.Title }}",
+              "type": "string"
+            },
+            {
+              "id": "ffa9f03e-295c-45c8-997a-8d8171fe7610",
+              "name": "Attendees",
+              "value": "={{ $('Form Trigger').item.json.Attendees }}",
+              "type": "string"
+            },
+            {
+              "id": "44de73bc-9054-49b5-b87b-56f9f98ea766",
+              "name": "Attendees_GmailS",
+              "value": "={{ $('Form Trigger').item.json.Attendees_GmailS }}",
+              "type": "string"
+            },
+            {
+              "id": "255c51dd-41ca-4c07-88de-07480fa5667b",
+              "name": "Gist",
+              "value": "={{ $('Form Trigger').item.json.Gist }}",
+              "type": "string"
+            },
+            {
+              "id": "245e2270-0fbf-4758-902f-a94aee719a34",
+              "name": "Status",
+              "value": "={{ $('Form Trigger').item.json.Status }}",
+              "type": "string"
+            },
+            {
+              "id": "fb069b90-d739-4325-9213-64dcab0cc86b",
+              "name": "Operation",
+              "value": "={{ $('Form Trigger').item.json.Operation }}",
+              "type": "string"
+            },
+            {
+              "id": "38bbd0c7-618a-45bb-bde1-b26045df5413",
+              "name": "durationInMinutes",
+              "value": "={{ $json.durationInMinutes }}",
+              "type": "number"
+            },
+            {
+              "id": "f4acd836-505f-438a-8346-6e56bc56bbf3",
+              "name": "ID",
+              "value": "={{ $('Form Trigger').item.json.ID }}",
+              "type": "string"
+            },
+            {
+              "id": "23e8e511-5903-431f-99a8-df48df1c9676",
+              "name": "DateTime",
+              "value": "={{ DateTime.fromFormat($node[\"Form Trigger\"].json[\"Date\"] + ' ' +$node[\"Form Trigger\"].json[\"Time\"],'yyyy-MM-dd h:mm a').toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        32
+      ],
+      "id": "766bc30f-5a32-451b-a951-e87ca4a1353e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg",
+          "mode": "list",
+          "cachedResultName": "Meeting Logger",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Active Meetings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ID",
+              "lookupValue": "={{$json.ID}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        0
+      ],
+      "id": "793a75bf-2feb-41f7-8186-f95194080809",
+      "name": "Get rows",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vDcV0XpqKIyE2xGe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "25d6c90a-bb00-487a-8d16-340da16669af",
+              "leftValue": "={{ $json.row_number }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        800,
+        -32
+      ],
+      "id": "11569bce-6641-4a72-bcbb-4a857c0ed9b9",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "57700d4a-7eee-4b71-9ab6-b89393ec36d4",
+              "leftValue": "={{ $json.Operation }}",
+              "rightValue": "Cancel Meeting",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": "={{ false }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        32
+      ],
+      "id": "912848fa-e53c-48e2-ac85-119ae60b80f6",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg",
+          "mode": "list",
+          "cachedResultName": "Meeting Logger",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Active Meetings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        608,
+        192
+      ],
+      "id": "cce73fb5-5cde-442e-bc1c-1819073ad239",
+      "name": "Fetching Meetings",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vDcV0XpqKIyE2xGe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const newMeeting = $('Edit Fields').first().json;\n\nconst newStart = new Date(newMeeting.DateTime);\nconst newEnd = new Date(\n  newStart.getTime() +\n  newMeeting.durationInMinutes * 60000\n);\n\nlet conflict = false;\n\nfor (const item of $input.all()) {\n\n  const existing = item.json;\n\n  if (!existing[\"Date/Time\"]) continue;\n\n  const exStart = new Date(existing[\"Date/Time\"]);\n\n  const exEnd = new Date(\n    exStart.getTime() +\n    Number(existing[\"Duration(mins)\"]) * 60000\n  );\n\n  const buffer = 60 * 60000;\n\n  if (\n    newStart < new Date(exEnd.getTime() + buffer) &&\n    newEnd > new Date(exStart.getTime() - buffer)\n  ) {\n    conflict = true;\n    break;\n  }\n}\n\nreturn [{\n  json: {\n    ...newMeeting,\n    conflict\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        224
+      ],
+      "id": "3553fe4b-94fb-4f06-aaff-2bbb610198c7",
+      "name": "Conflict_Detector"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c8ea5053-5cc5-478e-8566-c7a46d9419d0",
+              "leftValue": "={{$json.conflict}}",
+              "rightValue": "false",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1056,
+        272
+      ],
+      "id": "4cd7b1c2-de49-48f8-ab9f-86b0d7e964f7",
+      "name": "If7"
+    },
+    {
+      "parameters": {
+        "formTitle": "Meeting Logger",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Title",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Attendees",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Attendees_GmailS",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Gist",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Status",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Scheduled"
+                  },
+                  {
+                    "option": "Done"
+                  },
+                  {
+                    "option": "Cancelled"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Date",
+              "fieldType": "date",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Time",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "9:00 AM"
+                  },
+                  {
+                    "option": "10:00 AM"
+                  },
+                  {
+                    "option": "11:00 AM"
+                  },
+                  {
+                    "option": "2:00 AM"
+                  },
+                  {
+                    "option": "3:00 AM"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Duration",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "30 Minutes"
+                  },
+                  {
+                    "option": "1 Hour"
+                  },
+                  {
+                    "option": "1.5 Hours"
+                  },
+                  {
+                    "option": "2 Hours"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Operation",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Add Meeting"
+                  },
+                  {
+                    "option": "Update Meeting"
+                  },
+                  {
+                    "option": "Cancel Meeting"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "ID"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -576,
+        32
+      ],
+      "id": "441d433f-c391-412c-b313-9050f648f704",
+      "name": "Form Trigger",
+      "webhookId": "d5149be7-b334-4c4e-b53a-c333a86a5248"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg",
+          "mode": "list",
+          "cachedResultName": "Meeting Logger",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Active Meetings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{$json.row_number}}",
+            "Title ": "={{$node[\"Edit Fields\"].json[\"Title\"]}}",
+            "Attendees ": "={{$node[\"Edit Fields\"].json[\"Attendees\"]}}",
+            "Attendees_Gmails ": "={{$node[\"Edit Fields\"].json[\"Attendees_GmailS\"]}}",
+            "Gist ": "={{$node[\"Edit Fields\"].json[\"Gist\"]}}",
+            "Status ": "={{$node[\"Edit Fields\"].json[\"Status\"]}}",
+            "ID": "={{$node[\"Edit Fields\"].json[\"ID\"]}}",
+            "Date/Time ": "={{$node[\"Edit Fields\"].json[\"DateTime\"]}}",
+            "Duration(mins) ": "={{$node[\"Edit Fields\"].json[\"durationInMinutes\"]}}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Title ",
+              "displayName": "Title ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Attendees ",
+              "displayName": "Attendees ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Attendees_Gmails ",
+              "displayName": "Attendees_Gmails ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Gist ",
+              "displayName": "Gist ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status ",
+              "displayName": "Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date/Time ",
+              "displayName": "Date/Time ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Duration(mins) ",
+              "displayName": "Duration(mins) ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1040,
+        -112
+      ],
+      "id": "5f7258b1-d64f-4b71-b769-86ca1910e935",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vDcV0XpqKIyE2xGe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2be059b1-e45c-4d04-936d-94ac193cc0e9",
+              "leftValue": "={{ $json.Operation }}",
+              "rightValue": "Update Meeting",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        112
+      ],
+      "id": "660babcc-e90c-49da-98b6-e40b22bd004e",
+      "name": "If20"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg",
+          "mode": "list",
+          "cachedResultName": "Meeting Logger",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Active Meetings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ID",
+              "lookupValue": "={{$json.ID}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        464,
+        -144
+      ],
+      "id": "7758e3ea-88dd-4c3f-a7dc-c1bb5c10a3c8",
+      "name": "Get rows1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vDcV0XpqKIyE2xGe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "25d6c90a-bb00-487a-8d16-340da16669af",
+              "leftValue": "={{ $json.row_number }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        640,
+        -176
+      ],
+      "id": "5f400353-92d1-41a3-86ad-5d6345ede71c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg",
+          "mode": "list",
+          "cachedResultName": "Meeting Logger",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Active Meetings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{$json.row_number}}",
+            "Status ": "=Cancelled"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Title ",
+              "displayName": "Title ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Attendees ",
+              "displayName": "Attendees ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Attendees_Gmails ",
+              "displayName": "Attendees_Gmails ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Gist ",
+              "displayName": "Gist ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status ",
+              "displayName": "Status ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Date/Time ",
+              "displayName": "Date/Time ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Duration(mins) ",
+              "displayName": "Duration(mins) ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        880,
+        -256
+      ],
+      "id": "e62f3549-bf9e-4d1b-b064-09d8b90d3c02",
+      "name": "cancel meeting",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vDcV0XpqKIyE2xGe",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Emails_check": {
+      "main": [
+        [
+          {
+            "node": "If5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If5": {
+      "main": [
+        [
+          {
+            "node": "Duration Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Duration Parser": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get rows": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Get rows1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If20",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Fetching Meetings": {
+      "main": [
+        [
+          {
+            "node": "Conflict_Detector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conflict_Detector": {
+      "main": [
+        [
+          {
+            "node": "If7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If7": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Form Trigger": {
+      "main": [
+        [
+          {
+            "node": "Emails_check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If20": {
+      "main": [
+        [
+          {
+            "node": "Get rows",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetching Meetings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get rows1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "cancel meeting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "04abfd0d-1d84-4b74-863f-27245ff6a46e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9ee56a55f45791625456fc48cc54f3793009507bfa1ae4e19aa7e9616caf816d"
+  },
+  "nodeGroups": [],
+  "id": "w0s41uWx8i7Wtw31",
+  "tags": []
+}

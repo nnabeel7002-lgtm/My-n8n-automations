@@ -1,0 +1,297 @@
+{
+  "name": "Archive-Meetings",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 11
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4db9b8f6-571e-4738-8026-db7367a43874",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg",
+          "mode": "list",
+          "cachedResultName": "Meeting Logger",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Active Meetings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "e49c4b07-a9ba-43ec-b277-25835c3a0386",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vDcV0XpqKIyE2xGe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\nfor (const item of $input.all()) {\n\n  const status = String(item.json.Status || '')\n    .trim()\n    .toLowerCase();\n\n  if (\n      status === 'Done' ||\n      status === 'Cancelled' ||\n      status === 'canceled'\n  ) {\n\n    results.push({\n      json: {\n        row_number: item.json.row_number,\n\n        Title: item.json.Title,\n        Attendees: item.json.Attendees,\n        Attendees_Gmails: item.json.Attendees_Gmails,\n        Gist: item.json.Gist,\n        Status: item.json.Status,\n        ID: item.json.ID,\n        \"Date/Time\": item.json[\"Date/Time\"],\n        \"Duration(mins)\": item.json[\"Duration(mins)\"]\n      }\n    });\n\n  }\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "9ebd3cd4-7a6e-4814-9fc4-d740de999f22",
+      "name": "Find_Archive_Candidates"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg",
+          "mode": "list",
+          "cachedResultName": "Meeting Logger",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 18266848,
+          "mode": "list",
+          "cachedResultName": "Archives",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit#gid=18266848"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Title": "={{$json.Title}}",
+            "Attendees": "={{$json.Attendees}}",
+            "Attendees_Gmails": "={{$json.Attendees_Gmails}}",
+            "Gist": "={{$json.Gist}}",
+            "ID": "={{$json.ID}}",
+            "Status": "={{$json.Status}}",
+            "Date/Time": "{{$json[\"Date/Time\"]}}",
+            "Duration(mins)": "{{$json[\"Duration(mins)\"]}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date/Time",
+              "displayName": "Date/Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Duration(mins)",
+              "displayName": "Duration(mins)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Attendees",
+              "displayName": "Attendees",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Attendees_Gmails",
+              "displayName": "Attendees_Gmails",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Gist",
+              "displayName": "Gist",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        0
+      ],
+      "id": "e8a6e42f-4a09-4b40-abde-23ada3cca2b1",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vDcV0XpqKIyE2xGe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg",
+          "mode": "list",
+          "cachedResultName": "Meeting Logger",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Active Meetings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1osm35ljBUPIIYMbMqytMcnYaHWLioKS7xXgJDgbdEZg/edit#gid=0"
+        },
+        "startIndex": "={{$json.row_number}}"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        0
+      ],
+      "id": "0c262259-00bb-4fd6-bb87-fabcc267638d",
+      "name": "Delete rows or columns from sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vDcV0XpqKIyE2xGe",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Find_Archive_Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find_Archive_Candidates": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Delete rows or columns from sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "6dc961b1-997b-467c-9b98-932be0e195f4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9ee56a55f45791625456fc48cc54f3793009507bfa1ae4e19aa7e9616caf816d"
+  },
+  "nodeGroups": [],
+  "id": "FCz40LaURlEoBae2",
+  "tags": []
+}
