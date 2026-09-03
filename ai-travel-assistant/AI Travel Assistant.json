@@ -74,7 +74,7 @@
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "city": "={{ $fromAI('city') }}"
+            "city": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('city', ``, 'string') }}"
           },
           "matchingColumns": [
             "city"
@@ -117,7 +117,7 @@
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "city": "={{ $fromAI('city') }}"
+            "city": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('city', ``, 'string') }}"
           },
           "matchingColumns": [
             "city"
@@ -212,8 +212,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "6646f9ee-f5cd-41e0-b6ac-143f2f0d29d2",
-  
+  "versionId": "e615eb74-9bfa-4e0a-bd46-6caaa515cf6a",
   "nodeGroups": [],
   "id": "jZGUrWtB5vQsoZ8V",
   "tags": []
