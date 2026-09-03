@@ -1,0 +1,141 @@
+{
+  "name": "Tool - Find Places",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"city\": \"Lahore\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b02985c6-aad0-4a9f-9512-3c0168459d50",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "url": "https://nominatim.openstreetmap.org/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{$json.city}}"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "limit",
+              "value": "1"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "n8n-ai-travel-practice"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "322435e2-78d6-404c-80e3-778bc60cecc5",
+      "name": "Geocoding"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://overpass-api.de/api/interpreter",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "text/plain",
+        "body": "=[out:json]; (   node[\"tourism\"=\"attraction\"](around:10000,{{ $json.lat }},{{ $json.lon }});   way[\"tourism\"=\"attraction\"](around:10000,{{ $json.lat }},{{ $json.lon }});   node[\"tourism\"=\"museum\"](around:10000,{{ $json.lat }},{{ $json.lon }});   way[\"tourism\"=\"museum\"](around:10000,{{ $json.lat }},{{ $json.lon }}); ); out center tags;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        400,
+        0
+      ],
+      "id": "71128854-f484-4dcb-a432-51e4ecb9f1f4",
+      "name": "Find Attractions"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const elements = $json.elements || [];\n\nconst places = elements\n  .filter(item => item.tags?.name)\n  .map(item => ({\n    name: item.tags.name,\n    type: item.tags.tourism || \"attraction\",\n    latitude: item.lat ?? item.center?.lat,\n    longitude: item.lon ?? item.center?.lon\n  }))\n  .slice(0, 10);\n\nreturn {\n  places\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        0
+      ],
+      "id": "9fe7a920-5e76-47a8-bcc7-affe61b91f2f",
+      "name": "Format Places"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Geocoding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Geocoding": {
+      "main": [
+        [
+          {
+            "node": "Find Attractions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Attractions": {
+      "main": [
+        [
+          {
+            "node": "Format Places",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "bf46d7d0-9670-442c-bd4b-ae26f12745ea",
+  "meta": {
+    "instanceId": "0e47e07f04b250b52593bc1d3e1475b3a0a32ea22ce192b79f3b86bd1a696638"
+  },
+  "nodeGroups": [],
+  "id": "DIFTolc2aR8xkoMz",
+  "tags": []
+}

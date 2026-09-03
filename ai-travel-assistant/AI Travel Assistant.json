@@ -1,0 +1,223 @@
+{
+  "name": "AI Travel Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "60852852-20d8-4d6b-9e66-7ad69bab460b",
+      "name": "Chat Trigger",
+      "webhookId": "dfd1a894-b6d0-447a-a8c9-8353d87daea8"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an AI Travel Assistant.\n\nHelp users plan trips using the tools available to you.\n\nTOOLS:\n\nget_weather\n- Gets the weather forecast for a city.\n- Use it when the user asks about weather, temperature, rain, storms, wind, forecast, or outdoor conditions.\n\nfind_places\n- Finds attractions and museums in a city.\n- Use it when the user asks what to do, where to go, sightseeing, activities, attractions, or places to visit.\n\nRULES:\n\n1. If the user asks about weather, call get_weather.\n2. If the user asks about places or activities, call find_places.\n3. If the user asks about both weather AND places, call BOTH tools.\n4. Never invent weather information.\n5. Never invent places that were not returned by the tool.\n6. Combine the tool results into one helpful response.\n7. Ask for the city if the user hasn't provided one.\n8. Keep responses conversational and concise.\n9. Weather information comes from Open-Meteo.\n10. Place information comes from OpenStreetMap."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "55e3ac9a-819b-4180-a7a5-ccaaea46fdb1",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "=llama3.2:1b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        208,
+        240
+      ],
+      "id": "fcb8659f-0da0-4a18-8fb8-44283b506c5d",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "YEUvzm8MdadnrZrp",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        304,
+        208
+      ],
+      "id": "c0b017f3-ffb4-44f7-bd92-9ee127596e7a",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "description": "Get the weather forecast for a city. Use this tool whenever the user asks about weather, temperature, rain, storms, wind, forecast, or outdoor conditions.",
+        "workflowId": {
+          "__rl": true,
+          "value": "jrkiMzzQKk37yhQ1",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/jrkiMzzQKk37yhQ1",
+          "cachedResultName": "Tool - Get Weather"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "city": "={{ $fromAI('city') }}"
+          },
+          "matchingColumns": [
+            "city"
+          ],
+          "schema": [
+            {
+              "id": "city",
+              "displayName": "city",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        352
+      ],
+      "id": "4c2e08fc-9f44-4240-8d13-69621ba81ebf",
+      "name": "Call 'Tool - Get Weather'"
+    },
+    {
+      "parameters": {
+        "description": "Find attractions and museums in a city. Use this when the user asks what to do, where to go, sightseeing, attractions, activities, or places to visit.",
+        "workflowId": {
+          "__rl": true,
+          "value": "DIFTolc2aR8xkoMz",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/DIFTolc2aR8xkoMz",
+          "cachedResultName": "Tool - Find Places"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "city": "={{ $fromAI('city') }}"
+          },
+          "matchingColumns": [
+            "city"
+          ],
+          "schema": [
+            {
+              "id": "city",
+              "displayName": "city",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        352
+      ],
+      "id": "798d5704-9a27-4176-92fc-9f2c32dd9168",
+      "name": "Call 'Tool - Find Places'"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Tool - Get Weather'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Tool - Find Places'": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "6646f9ee-f5cd-41e0-b6ac-143f2f0d29d2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0e47e07f04b250b52593bc1d3e1475b3a0a32ea22ce192b79f3b86bd1a696638"
+  },
+  "nodeGroups": [],
+  "id": "jZGUrWtB5vQsoZ8V",
+  "tags": []
+}
