@@ -213,10 +213,7 @@
     "availableInMCP": false
   },
   "versionId": "6646f9ee-f5cd-41e0-b6ac-143f2f0d29d2",
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "0e47e07f04b250b52593bc1d3e1475b3a0a32ea22ce192b79f3b86bd1a696638"
-  },
+  ,
   "nodeGroups": [],
   "id": "jZGUrWtB5vQsoZ8V",
   "tags": []
