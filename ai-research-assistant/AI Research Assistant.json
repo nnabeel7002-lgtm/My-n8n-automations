@@ -1,0 +1,155 @@
+{
+  "name": "AI Research Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -80,
+        16
+      ],
+      "id": "fa113521-fcf4-4f8b-ab58-067894a4b9bc",
+      "name": "Chat Trigger",
+      "webhookId": "dfd1a894-b6d0-447a-a8c9-8353d87daea8"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an AI Research Assistant.\n\nYour job is to answer research and information questions using web search when necessary.\n\nYou have access to a web search tool.\n\nRULES:\n\n1. Use the web search tool when the user asks for current, recent, latest, or research-based information.\n2. Use the web search tool when the information may have changed since your training data.\n3. Create a specific and useful search query.\n4. Base your answer on the information returned by the web search tool.\n5. Do not invent facts or sources.\n6. Summarize the search results in your own words.\n7. If the user asks about a topic that does not require current information, you may answer directly.\n8. Clearly explain important findings.\n9. Keep the answer concise but useful.\n10. When discussing recent information, mention that the information was obtained through web search."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        144,
+        16
+      ],
+      "id": "7265df6e-5845-418c-b3a6-8b956977e70a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "=llama3.2:1b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        144,
+        240
+      ],
+      "id": "eba7c288-6f1d-477f-bbdb-87d5685b2004",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "YEUvzm8MdadnrZrp",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        240,
+        208
+      ],
+      "id": "417383ee-5fd5-4b99-9c83-dc79bba8762d",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Search the web for current information.\n\nUse this tool whenever the user asks for:\n- latest information\n- recent news\n- current developments\n- research\n- facts that may have changed recently\n- information about current technology, science, products, companies, or events\n\nGenerate a specific search query based on the user's question.\n\nThe query should contain the important keywords and should be suitable for a web search.",
+        "url": "https://html.duckduckgo.com/html/",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', ``, 'string') }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        480,
+        240
+      ],
+      "id": "ea5134a1-4c1b-4427-a28b-64b328a05697",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "3df8fa0c-57a1-443a-b08b-89f4468898ed",
+  "nodeGroups": [],
+  "id": "yeKp0N5oxFpa3eaZ",
+  "tags": []
+}
