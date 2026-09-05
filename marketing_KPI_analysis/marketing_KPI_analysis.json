@@ -1,0 +1,200 @@
+{
+  "name": "Marketing KPI Analysis",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -512,
+        -128
+      ],
+      "id": "ca3d1b9f-21d8-4a23-925e-b5b078ff0243",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "marketing_data",
+          "cachedResultUrl": "",
+          "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": ""
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -288,
+        -80
+      ],
+      "id": "edb6c944-6023-41a1-abdb-3b3c3b518fc6",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "vDcV0XpqKIyE2xGe",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all();\n\nlet clicks = 0;\nlet impressions = 0;\nlet conversions = 0;\nlet spend = 0;\n\nfor (const item of rows) {\n  clicks += Number(item.json.Clicks);\n  impressions += Number(item.json.Impressions);\n  conversions += Number(item.json.Conversions);\n  spend += Number(item.json.Spend);\n}\n\nconst ctr = (clicks / impressions) * 100;\nconst cpc = spend / clicks;\nconst conversionRate = (conversions / clicks) * 100;\nconst costPerConversion = spend / conversions;\n\nreturn [{\n  json: {\n    totalClicks: clicks,\n    totalImpressions: impressions,\n    totalConversions: conversions,\n    totalSpend: spend,\n    ctr: ctr.toFixed(2),\n    cpc: cpc.toFixed(2),\n    conversionRate: conversionRate.toFixed(2),\n    costPerConversion: costPerConversion.toFixed(2)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        -80
+      ],
+      "id": "1cc52cfe-66d2-4c73-a451-d9a61a5d538a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are a marketing analyst.\n\nAnalyze the following KPI metrics:\n{{ $json.totalClicks }}\n{{ $json.totalImpressions }}\n{{ $json.totalConversions }}\n{{ $json.totalSpend }}\n{{ $json.ctr }}\n{{ $json.cpc }}\n{{ $json.conversionRate }}\n{{ $json.costPerConversion }}\n\nProvide:\n1. Executive Summary\n2. KPI Evaluation\n3. Recommendations\n4. Performance Score out of 10"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        128,
+        -80
+      ],
+      "id": "31379b7d-6d04-4534-b3aa-ab96fa0eef48",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "ewbIz8nT0qQ2wsYq",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "markdownToHtml",
+        "markdown": "={{ $json.output[0].content[0].text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -80
+      ],
+      "id": "e9194be0-4fd1-4fe8-a468-78114871e476",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "Marketing Analysis",
+        "message": "={{ $json.output[0].content[0].text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        688,
+        -80
+      ],
+      "id": "c5a5ac1b-286e-49d6-a282-3b548a7008ce",
+      "name": "Send a message",
+      "webhookId": "ff09ceca-bb8e-4a35-87a2-eb05bcb95ebf",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VH46Yu66JDEz8ZCS",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "triggerCount": 0,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
