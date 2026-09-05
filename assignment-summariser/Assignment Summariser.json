@@ -1,0 +1,325 @@
+{
+  "name": "Assignment Summariser",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "assignment-summarizer",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c3835015-afcb-4be9-8bc4-adc872935476",
+      "name": "Webhook",
+      "webhookId": "1f3c93f0-89b0-492b-b81e-66de916bc719"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an Assignment Summarizer.\n\nAnalyze the user's text.\n\nReturn ONLY a JSON object with exactly these fields:\n\n{\n  \"summary\": \"string\",\n  \"key_points\": [\"string\"],\n  \"important_terms\": [\"string\"],\n  \"questions\": [\"string\"],\n  \"action_items\": [\"string\"]\n}\n\nRules:\n- Use valid JSON.\n- Use double quotes for all JSON keys and string values.\n- Do not use single quotes.\n- Do not use markdown.\n- Do not use ```json.\n- Do not create a function call.\n- Do not add any text before or after the JSON.\n- Do not invent information."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "79f33dc5-a139-4a6b-aa60-643b36cc7848",
+      "name": "AI Agent",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:1b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        208,
+        208
+      ],
+      "id": "7eaaf011-029a-41dc-8c32-318abd1d8db8",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "YEUvzm8MdadnrZrp",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.output;\n\nif (!raw) {\n  return [{\n    json: {\n      valid: false,\n      error: \"No AI output found\"\n    }\n  }];\n}\n\nlet parsed;\n\ntry {\n  parsed = JSON.parse(raw);\n} catch (error) {\n  return [{\n    json: {\n      valid: false,\n      error: \"Invalid JSON\",\n      details: error.message,\n      rawOutput: raw\n    }\n  }];\n}\n\n// Normalize fields\nconst result = {\n  summary: parsed.summary || \"\",\n  key_points: Array.isArray(parsed.key_points)\n    ? parsed.key_points\n    : parsed.key_points\n      ? [parsed.key_points]\n      : [],\n\n  important_terms: Array.isArray(parsed.important_terms)\n    ? parsed.important_terms\n    : parsed.important_terms\n      ? parsed.important_terms.split(\",\").map(x => x.trim())\n      : [],\n\n  questions: Array.isArray(parsed.questions)\n    ? parsed.questions\n    : parsed.questions\n      ? [parsed.questions]\n      : [],\n\n  action_items: Array.isArray(parsed.action_items)\n    ? parsed.action_items\n    : parsed.action_items\n      ? [parsed.action_items]\n      : []\n};\n\n// Basic validation\nif (!result.summary) {\n  return [{\n    json: {\n      valid: false,\n      error: \"Summary is missing\",\n      rawOutput: parsed\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    valid: true,\n    ...result\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        -16
+      ],
+      "id": "2ca2b6db-fecb-4096-964a-d2371a82d981",
+      "name": "Validate Assignment Output"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8c7335f7-7d0e-4434-baa9-1a995a8ef192",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        768,
+        -16
+      ],
+      "id": "615772c4-7660-4be1-b61e-a29794132b68",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f2fffa0a-b4f7-4013-97da-444c0406f880",
+              "name": "summary",
+              "value": "={{ $json.summary }}",
+              "type": "string"
+            },
+            {
+              "id": "0bf7e58d-9d43-4c27-a8d2-d61666bf0c12",
+              "name": "key_points",
+              "value": "={{ $json.key_points }}",
+              "type": "string"
+            },
+            {
+              "id": "bfbe3f31-32fc-49c4-b2d1-58fbfc629803",
+              "name": "important_terms",
+              "value": "={{ $json.important_terms }}",
+              "type": "string"
+            },
+            {
+              "id": "55727bec-df3e-4d26-9ae5-1a6f44f4f133",
+              "name": "questions",
+              "value": "={{ $json.questions }}",
+              "type": "string"
+            },
+            {
+              "id": "58f4a4e9-a561-4aad-af21-391f80ae135d",
+              "name": "action_items",
+              "value": "={{ $json.action_items }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        976,
+        -16
+      ],
+      "id": "1dbf76e6-8c00-4e93-b1f9-376532f1748d",
+      "name": "Format Success"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3ba20080-849e-4f72-b9d8-5f29b4d376ac",
+              "name": "status",
+              "value": "FAILED",
+              "type": "string"
+            },
+            {
+              "id": "82323500-3817-4bb6-9bcb-6b53124e96fc",
+              "name": "message",
+              "value": "The AI produced an invalid response",
+              "type": "string"
+            },
+            {
+              "id": "74cb8d9a-ff58-4b4c-b508-66ba06154ee1",
+              "name": "error",
+              "value": "={{ $json.error }}",
+              "type": "string"
+            },
+            {
+              "id": "ed218b0a-29b0-4692-9217-67e2a8da15a9",
+              "name": "details",
+              "value": "={{ JSON.stringify($json) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        976,
+        112
+      ],
+      "id": "be401155-85a4-4e9f-9673-a667d1436edc",
+      "name": "Format Error"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"summary\": \"{{ $json.summary }}\",\n  \"key_points\": \"{{ $json.key_points }}\",\n  \"important_terms\": \"{{ $json.important_terms }}\",\n  \"questions\": \"{{ $json.questions }}\",\n  \"action_items\": \"{{ $json.action_items }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1184,
+        -16
+      ],
+      "id": "1a14fadd-657f-4189-b1fb-491cd1e270f9",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"message\": \"{{ $json.message }}\",\n  \"details\": \"{{ $json.details }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1200,
+        112
+      ],
+      "id": "09e1a304-69b2-4d63-a0ab-ed15aa61b119",
+      "name": "Respond to Webhook1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Validate Assignment Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Assignment Output": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Format Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Success": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Error": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0927b78e-0fd2-4e36-a617-1cd566074e24",
+  
+  "nodeGroups": [],
+  "id": "2TCjvCIlPiwEmSYj",
+  "tags": []
+}
