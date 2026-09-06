@@ -28,6 +28,7 @@ Already Exists?
        Google Sheets  Google Sheets
             ↓
       Discord Alert 🔥
+```
 
 ## ✨ Features
 
